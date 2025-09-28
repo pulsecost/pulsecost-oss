@@ -27,7 +27,6 @@
 - [🔧 Technical Implementation](#-technical-implementation)
   - [API Key Security](#api-key-security)
 - [🏗️ Architecture](#️-architecture)
-- [📜 Roadmap](#-roadmap)
 - [🤝 Contributing](#-contributing)
 - [🔒 Security](#-security)
 - [⚖️ License](#️-license)
@@ -359,16 +358,6 @@ CREATE TABLE api_keys (
 - **model/** → Zod schemas (shared contracts)
 - **common/** → utilities (logger, etc.)
 - **docker/** → dev & prod Compose configs
-
----
-
-## 📜 Roadmap
-
-- ✅ **v0.1.0**: Proxy + Zod models + logging + Docker setup
-- 🚧 **v0.2.0**: Dashboard Phase-1 (KPIs, charts, logs, config view)
-- 🔜 **v0.3.0**: Budgets, alerts, Slack/webhook integration
-- 🔜 **v0.4.0**: Prompt compression + model routing
-- 🎯 **v1.0.0**: Multi-tenant SaaS wrapper
 
 ---
 
