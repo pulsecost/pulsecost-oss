@@ -40,5 +40,8 @@
     "*.{json,md,yml,yaml}": [
       "prettier --write"
     ]
+  },
+  "dependencies": {
+    "pg": "^8.16.3"
   }
 }

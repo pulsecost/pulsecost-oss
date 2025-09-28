@@ -11,6 +11,10 @@ overrides:
 importers:
 
   .:
+    dependencies:
+      pg:
+        specifier: ^8.16.3
+        version: 8.16.3
     devDependencies:
       '@commitlint/cli':
         specifier: ^18.4.3

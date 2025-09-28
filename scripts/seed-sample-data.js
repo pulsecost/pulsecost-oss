@@ -18,9 +18,9 @@ const dbConfig = {
 
 // Sample API keys
 const sampleApiKeys = [
-  { id: 'key-001', key_prefix: 'sk-abc123', description: 'Development Key' },
-  { id: 'key-002', key_prefix: 'sk-def456', description: 'Production Key' },
-  { id: 'key-003', key_prefix: 'sk-ghi789', description: 'Testing Key' },
+  { id: 'key-001', key_prefix: 'sk-abc1', description: 'Development Key' },
+  { id: 'key-002', key_prefix: 'sk-def4', description: 'Production Key' },
+  { id: 'key-003', key_prefix: 'sk-ghi7', description: 'Testing Key' },
 ];
 
 // Sample models
@@ -98,14 +98,21 @@ async function seedDatabase() {
 
     console.log('Inserting sample API keys...');
     for (const key of sampleApiKeys) {
+      // Generate a deterministic hash for the key prefix
+      const crypto = require('crypto');
+      const keyHash = crypto.createHash('sha256').update(key.key_prefix).digest('hex');
+      const salt = crypto.randomBytes(16).toString('hex');
+      
       await client.query(
         `
-        INSERT INTO api_keys (id, key_prefix, created_at, is_active, description)
-        VALUES ($1, $2, $3, $4, $5)
+        INSERT INTO api_keys (id, key_prefix, key_hash, salt, created_at, is_active, description)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
       `,
         [
           key.id,
           key.key_prefix,
+          keyHash,
+          salt,
           new Date().toISOString(),
           true,
           key.description,
