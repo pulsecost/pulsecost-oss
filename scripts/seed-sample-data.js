@@ -100,9 +100,12 @@ async function seedDatabase() {
     for (const key of sampleApiKeys) {
       // Generate a deterministic hash for the key prefix
       const crypto = require('crypto');
-      const keyHash = crypto.createHash('sha256').update(key.key_prefix).digest('hex');
+      const keyHash = crypto
+        .createHash('sha256')
+        .update(key.key_prefix)
+        .digest('hex');
       const salt = crypto.randomBytes(16).toString('hex');
-      
+
       await client.query(
         `
         INSERT INTO api_keys (id, key_prefix, key_hash, salt, created_at, is_active, description)

@@ -5,6 +5,10 @@
 echo "🔍 Running comprehensive error check..."
 pnpm check-errors
 
+# Run Prettier format check on all files
+echo "🎨 Running Prettier format check..."
+pnpm format:check
+
 # Then run lint-staged for staged files
 echo "📝 Running lint-staged on staged files..."
 npx lint-staged
