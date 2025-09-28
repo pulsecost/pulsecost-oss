@@ -2,8 +2,8 @@
 
 **pulsecost-oss** · Proxy + Dashboard for **optimizing LLM usage costs**
 
-[![CI](https://github.com/rpgeeganage/pulsecost-oss/actions/workflows/ci.yml/badge.svg)](https://github.com/rpgeeganage/pulsecost-oss/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/version-v0.2.0-blue)](https://github.com/rpgeeganage/pulsecost-oss/releases)
+[![CI](https://github.com/pulsecost/pulsecost-oss/actions/workflows/ci.yml/badge.svg)](https://github.com/pulsecost/pulsecost-oss/actions/workflows/ci.yml)
+[![Version](https://img.shields.io/badge/version-v0.2.0-blue)](https://github.com/pulsecost/pulsecost-oss/releases)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPLv3-blue.svg)](./LICENSE)
 
 ## 📋 Table of Contents
@@ -61,7 +61,7 @@ Built with a clean **hexagonal architecture**, so you can swap storage, cache, o
 Clone and install:
 
 ```bash
-git clone https://github.com/rpgeeganage/pulsecost-oss.git
+git clone https://github.com/pulsecost/pulsecost-oss.git
 cd pulsecost-oss
 pnpm install
 ```
