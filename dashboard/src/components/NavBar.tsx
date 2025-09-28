@@ -20,9 +20,16 @@ const NavBar: React.FC = () => {
           alignItems: 'center',
         }}
       >
-        <h1 style={{ margin: 0, fontSize: '1.5rem', color: '#495057' }}>
-          OptiLM Dashboard
-        </h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <img
+            src="/logo-simple.svg"
+            alt="PulseCost Logo"
+            style={{ height: '32px', width: 'auto' }}
+          />
+          <h1 style={{ margin: 0, fontSize: '1.5rem', color: '#495057' }}>
+            PulseCost Dashboard
+          </h1>
+        </div>
         <div style={{ display: 'flex', gap: '1rem' }}>
           <NavLink
             to="/"

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Comprehensive Error Checking Script for OptiLM
+# Comprehensive Error Checking Script for PulseCost
 set -e
 
 echo "🔍 Starting comprehensive error check..."

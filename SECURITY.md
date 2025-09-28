@@ -45,12 +45,13 @@ We follow responsible disclosure practices:
 
 ### Security Best Practices
 
-When using OptiLM, please follow these security best practices:
+When using PulseCost, please follow these security best practices:
 
 #### API Security
 
 - **Use HTTPS**: Always use HTTPS in production
-- **API Keys**: Keep your API keys secure and rotate them regularly
+- **Client API Keys**: Clients provide their own OpenAI API keys via Authorization header
+- **No Server Storage**: PulseCost never stores or manages API keys
 - **Environment Variables**: Store sensitive configuration in environment variables
 - **Network Security**: Use proper firewall rules and network segmentation
 
@@ -70,7 +71,7 @@ When using OptiLM, please follow these security best practices:
 
 ### Security Features
 
-OptiLM includes several security features:
+PulseCost includes several security features:
 
 - **Input Validation**: All API inputs are validated using Zod schemas
 - **Error Handling**: Secure error handling that doesn't expose sensitive information
@@ -80,9 +81,11 @@ OptiLM includes several security features:
 
 ### Known Security Considerations
 
-- **API Keys**: OptiLM handles API keys for LLM providers - ensure these are stored securely
-- **Database**: The application stores request/response data - ensure your database is properly secured
-- **Network**: The proxy nature means all traffic flows through OptiLM - ensure proper network security
+- **Client API Keys**: Clients provide their own OpenAI API keys - PulseCost acts as a transparent proxy
+- **No Key Storage**: PulseCost never stores API keys, reducing security risks
+- **Database**: The application stores request/response data and usage analytics - ensure your database is properly secured
+- **Network**: The proxy nature means all traffic flows through PulseCost - ensure proper network security
+- **Authorization Headers**: Ensure Authorization headers are properly validated and sanitized
 
 ### Security Updates
 
@@ -101,4 +104,4 @@ For security-related questions or concerns, please contact:
 
 ### Acknowledgments
 
-We thank the security researchers and community members who help keep OptiLM secure through responsible disclosure.
+We thank the security researchers and community members who help keep PulseCost secure through responsible disclosure.

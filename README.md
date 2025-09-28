@@ -66,11 +66,11 @@ cd pulsecost-oss
 pnpm install
 ```
 
-Copy env template and add your **OpenAI API key**:
+Copy env template (no server-side API key required):
 
 ```bash
 cp .env.example .env
-echo "OPENAI_API_KEY=sk-xxxx" >> .env
+# No server-side API key required - clients provide their own keys
 ```
 
 Run API + Dashboard with Docker Compose (SQLite default):
@@ -100,8 +100,8 @@ make docker-db-ui
   - Email: `admin@example.com`
   - Password: `admin`
 - **phpMyAdmin** (MySQL): http://localhost:8080
-  - User: `opti_lm`
-  - Password: `opti_lm`
+  - User: `pulsecost`
+  - Password: `pulsecost`
 
 API: [http://localhost:3000](http://localhost:3000)  
 Dashboard: [http://localhost:3001](http://localhost:3001)
@@ -122,13 +122,13 @@ curl http://localhost:3000/version
 
 ## 🖥️ Dashboard
 
-The OptiLM dashboard provides a comprehensive view of your LLM usage, costs, and performance metrics with a clean, modern interface.
+The PulseCost dashboard provides a comprehensive view of your LLM usage, costs, and performance metrics with a clean, modern interface.
 
 ### 📸 Screenshots
 
 #### Main Dashboard Overview
 
-![OptiLM Dashboard](screenshots/dashboard.png)
+![PulseCost Dashboard](screenshots/dashboard.png)
 
 #### Logs
 
@@ -232,32 +232,32 @@ The dashboard is served via Nginx with SPA route fallback for seamless navigatio
 
 ---
 
-## 🔐 API Key Management
+## 🔐 Client API Key Management
 
-OptiLM features a robust API key management system that ensures security and prevents collisions:
+PulseCost operates as a **transparent proxy** where each client provides their own OpenAI API key:
 
-### 🔒 Hash-Based Lookup System
+### 🔒 Client-Driven Authentication
 
-- **Deterministic Hashing**: Uses Argon2id with fixed salt for consistent key identification
-- **Collision Prevention**: Eliminates prefix-based collision risks
-- **Secure Storage**: API keys are never stored in plain text
-- **Automatic Deduplication**: Same API key creates only one database entry
+- **Authorization Header**: Clients pass their API key via `Authorization: Bearer <key>`
+- **Per-Request Keys**: Each API call uses the client's provided key
+- **No Server Storage**: PulseCost never stores or manages API keys
+- **True Proxy Behavior**: Direct pass-through to OpenAI with usage tracking
 
 ### 🎯 Key Features
 
-- **Unique Identification**: Each API key gets a unique deterministic hash
-- **Call Log Association**: All API calls are properly linked to their source key
-- **Usage Tracking**: Monitor usage patterns per API key
-- **Cost Attribution**: Track costs and savings per key
+- **Client Isolation**: Each client uses their own OpenAI account and billing
+- **Usage Tracking**: Monitor usage patterns per client API key
+- **Cost Attribution**: Track costs and savings per client
+- **Hash-Based Identification**: Secure key identification without storing keys
 
 ### 📊 API Key Analytics
 
-The dashboard provides detailed insights into API key usage:
+The dashboard provides detailed insights into client API key usage:
 
-- **Usage by Key**: Track token consumption per API key
-- **Cost Attribution**: See spending breakdown by key
+- **Usage by Key**: Track token consumption per client API key
+- **Cost Attribution**: See spending breakdown by client
 - **Performance Metrics**: Monitor response times and success rates
-- **Activity Logs**: Detailed logs of all API calls with key identification
+- **Activity Logs**: Detailed logs of all API calls with client key identification
 
 ![API Key Management](screenshots/api-key-management.png)
 
@@ -265,10 +265,15 @@ The dashboard provides detailed insights into API key usage:
 
 ## 🧪 Test the Proxy
 
+**Important**: You must provide your own OpenAI API key via the `Authorization` header.
+
 Chat completions:
 
 ```bash
-curl -s http://localhost:3000/v1/chat/completions   -H "Content-Type: application/json"   -d '{
+curl -s http://localhost:3000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer sk-your-openai-api-key" \
+  -d '{
     "model": "gpt-4o-mini",
     "messages": [
       { "role": "user", "content": "Hello, test proxy!" }
@@ -280,21 +285,61 @@ curl -s http://localhost:3000/v1/chat/completions   -H "Content-Type: applicatio
 Embeddings:
 
 ```bash
-curl -s http://localhost:3000/v1/embeddings   -H "Content-Type: application/json"   -d '{
+curl -s http://localhost:3000/v1/embeddings \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer sk-your-openai-api-key" \
+  -d '{
     "model": "text-embedding-3-small",
     "input": "hello world"
   }' | jq
+```
+
+**Error Examples**:
+
+Without API key:
+
+```bash
+curl -s http://localhost:3000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{"model": "gpt-4", "messages": [{"role": "user", "content": "Hello"}]}'
+# Returns: {"error": "API key is required"}
+```
+
+With invalid API key:
+
+```bash
+curl -s http://localhost:3000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer sk-invalid-key" \
+  -d '{"model": "gpt-4", "messages": [{"role": "user", "content": "Hello"}]}'
+# Returns: {"error": "Invalid OpenAI API key: Incorrect API key provided: sk-inval*********-key"}
 ```
 
 ---
 
 ## 🔧 Technical Implementation
 
-### API Key Security
+### Client API Key Security
 
-OptiLM implements a sophisticated API key management system:
+PulseCost implements a secure client-driven API key system:
 
-#### Hash-Based Lookup Algorithm
+#### Authorization Header Processing
+
+```typescript
+// Extract client API key from Authorization header
+private extractApiKey(req: Request): string | undefined {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    return authHeader.substring(7);
+  }
+  return undefined;
+}
+
+// Pass client key to OpenAI gateway
+const response = await this.inferenceGateway.chatCompletion(request, apiKey);
+```
+
+#### Hash-Based Tracking (for Analytics)
 
 ```typescript
 // Deterministic hash generation for consistent lookup
@@ -326,12 +371,20 @@ CREATE TABLE api_keys (
 );
 ```
 
+#### Security Features
+
+- **Client-Provided Keys**: Each request uses the client's own OpenAI API key
+- **No Server Storage**: PulseCost never stores or manages API keys
+- **Hash-Based Tracking**: Uses deterministic hashing for usage analytics
+- **Transparent Proxy**: Direct pass-through to OpenAI with original error responses
+- **Client Isolation**: Each client's usage is tracked separately
+
 #### Key Benefits
 
-- **Collision Prevention**: Deterministic hashing eliminates prefix-based collisions
-- **Security**: Argon2id provides strong cryptographic protection
-- **Performance**: Direct hash lookup is O(1) operation
-- **Deduplication**: Same API key creates only one database entry
+- **True Proxy Behavior**: Clients use their own OpenAI accounts and billing
+- **Security**: No server-side API key management reduces attack surface
+- **Performance**: Direct hash lookup for analytics is O(1) operation
+- **Deduplication**: Same client API key creates only one database entry for tracking
 
 ---
 

@@ -7,9 +7,9 @@ const envSchema = z.object({
   dbDriver: z.enum(['mysql', 'postgres']).default('postgres'),
   dbHost: z.string().default('localhost'),
   dbPort: z.number().default(5432),
-  dbUser: z.string().default('opti_lm'),
-  dbPassword: z.string().default('opti_lm'),
-  dbName: z.string().default('opti_lm'),
+  dbUser: z.string().default('pulsecost'),
+  dbPassword: z.string().default('pulsecost'),
+  dbName: z.string().default('pulsecost'),
 });
 
 export type IConfig = z.infer<typeof envSchema>;
@@ -21,9 +21,9 @@ const rawEnv = {
   dbDriver: process.env['DB_DRIVER'] || 'postgres',
   dbHost: process.env['DB_HOST'] || 'localhost',
   dbPort: process.env['DB_PORT'] ? parseInt(process.env['DB_PORT']) : 5432,
-  dbUser: process.env['DB_USER'] || 'opti_lm',
-  dbPassword: process.env['DB_PASSWORD'] || 'opti_lm',
-  dbName: process.env['DB_NAME'] || 'opti_lm',
+  dbUser: process.env['DB_USER'] || 'pulsecost',
+  dbPassword: process.env['DB_PASSWORD'] || 'pulsecost',
+  dbName: process.env['DB_NAME'] || 'pulsecost',
 };
 
 export const config: IConfig = envSchema.parse(rawEnv);

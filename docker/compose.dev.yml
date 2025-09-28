@@ -13,19 +13,27 @@ services:
       - DB_DRIVER=postgres
       - DB_HOST=postgres
       - DB_PORT=5432
-      - DB_USER=opti_lm
-      - DB_PASSWORD=opti_lm
-      - DB_NAME=opti_lm
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-    volumes:
-      - ../api:/app/api
-      - ../model:/app/model
-      - ../common:/app/common
+      - DB_USER=pulsecost
+      - DB_PASSWORD=pulsecost
+      - DB_NAME=pulsecost
+      # No server-side API key required - clients provide their own keys
+    # volumes:
+    # - ../api:/app/api
+    # - ../model:/app/model
+    # - ../common:/app/common
     depends_on:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:3000/health']
+      test:
+        [
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--spider',
+          'http://localhost:3000/health',
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -38,12 +46,12 @@ services:
       dockerfile: dashboard/Dockerfile
     ports:
       - '3001:80'
-    volumes:
-      - ../dashboard:/app/dashboard
-      - ../model:/app/model
-    depends_on:
-      api:
-        condition: service_healthy
+    # volumes:
+    # - ../dashboard:/app/dashboard
+    # - ../model:/app/model
+    # depends_on:
+    # api:
+    # condition: service_healthy
     healthcheck:
       test: ['CMD', 'curl', '-f', 'http://localhost:80/health']
       interval: 30s
@@ -57,9 +65,9 @@ services:
     image: mysql:8.0
     environment:
       - MYSQL_ROOT_PASSWORD=root
-      - MYSQL_DATABASE=opti_lm
-      - MYSQL_USER=opti_lm
-      - MYSQL_PASSWORD=opti_lm
+      - MYSQL_DATABASE=pulsecost
+      - MYSQL_USER=pulsecost
+      - MYSQL_PASSWORD=pulsecost
     ports:
       - '3306:3306'
     volumes:
@@ -76,8 +84,8 @@ services:
     environment:
       - PMA_HOST=mysql
       - PMA_PORT=3306
-      - PMA_USER=opti_lm
-      - PMA_PASSWORD=opti_lm
+      - PMA_USER=pulsecost
+      - PMA_PASSWORD=pulsecost
       - MYSQL_ROOT_PASSWORD=root
     ports:
       - '8080:80'
@@ -90,15 +98,15 @@ services:
   postgres:
     image: postgres:15
     environment:
-      - POSTGRES_DB=opti_lm
-      - POSTGRES_USER=opti_lm
-      - POSTGRES_PASSWORD=opti_lm
+      - POSTGRES_DB=pulsecost
+      - POSTGRES_USER=pulsecost
+      - POSTGRES_PASSWORD=pulsecost
     ports:
       - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U opti_lm']
+      test: ['CMD-SHELL', 'pg_isready -U pulsecost']
       interval: 10s
       timeout: 5s
       retries: 5

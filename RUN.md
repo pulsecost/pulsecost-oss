@@ -1,4 +1,4 @@
-# OptiLM - Run Guide
+# PulseCost - Run Guide
 
 ## Prerequisites
 
@@ -65,8 +65,7 @@ docker-compose -f docker/compose.dev.yml --profile dashboard up
 Create `.env` file in project root:
 
 ```bash
-# Required
-OPENAI_API_KEY=your_openai_api_key_here
+# No server-side API key required - clients provide their own keys
 
 # Optional (defaults shown)
 PORT=3000
@@ -77,9 +76,27 @@ DB_PATH=./data.sqlite
 # For MySQL/PostgreSQL
 DB_HOST=localhost
 DB_PORT=5432
-DB_USER=opti_lm
-DB_PASSWORD=opti_lm
-DB_NAME=opti_lm
+DB_USER=pulsecost
+DB_PASSWORD=pulsecost
+DB_NAME=pulsecost
+```
+
+### Testing the API
+
+**Important**: You must provide your own OpenAI API key via the `Authorization` header.
+
+```bash
+# Test chat completions
+curl -s http://localhost:3000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer sk-your-openai-api-key" \
+  -d '{"model": "gpt-4", "messages": [{"role": "user", "content": "Hello"}]}'
+
+# Test embeddings
+curl -s http://localhost:3000/v1/embeddings \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer sk-your-openai-api-key" \
+  -d '{"model": "text-embedding-3-small", "input": "hello world"}'
 ```
 
 ## Production Environment
@@ -115,7 +132,7 @@ pnpm --filter @pulsecost-oss/dashboard preview
 ### PostgreSQL (Default)
 
 - Database created automatically with Docker
-- Default credentials: `opti_lm` / `opti_lm`
+- Default credentials: `pulsecost` / `pulsecost`
 
 ### MySQL
 
@@ -228,7 +245,7 @@ pnpm run docker:prod       # Full stack prod with Docker
 1. **Module not found errors**: Run `pnpm install` to ensure all dependencies are installed
 2. **Port already in use**: Change PORT in `.env` or kill existing processes
 3. **Database connection errors**: Check database credentials and ensure database is running
-4. **OpenAI API errors**: Verify API key is set and valid
+4. **OpenAI API errors**: Verify client API key is provided in Authorization header
 
 ### Logs
 

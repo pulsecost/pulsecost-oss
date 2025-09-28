@@ -12,7 +12,7 @@ import { ApiKeyManager } from '../utils/ApiKeyManager';
 
 export class ProxyRequest {
   constructor(
-    private inferenceGateway: InferenceGateway | null,
+    private inferenceGateway: InferenceGateway,
     private repository: Repository
   ) {}
 
@@ -40,12 +40,12 @@ export class ProxyRequest {
     request: ChatRequest,
     apiKey?: string
   ): Promise<ChatResponse> {
-    if (!this.inferenceGateway) {
-      throw new Error('OpenAI API key not configured');
-    }
-
     const startTime = Date.now();
-    const response = await this.inferenceGateway.chatCompletion(request);
+    const response = await this.inferenceGateway.chatCompletion(
+      request,
+      apiKey
+    );
+
     const { inputTokens, outputTokens } = extractTokensFromResponse(response);
     const totalTokens = inputTokens + outputTokens;
     const cost = calculateCost(request.model, inputTokens, outputTokens);
@@ -78,12 +78,9 @@ export class ProxyRequest {
     request: EmbeddingsRequest,
     apiKey?: string
   ): Promise<EmbeddingsResponse> {
-    if (!this.inferenceGateway) {
-      throw new Error('OpenAI API key not configured');
-    }
-
     const startTime = Date.now();
-    const response = await this.inferenceGateway.embeddings(request);
+    const response = await this.inferenceGateway.embeddings(request, apiKey);
+
     const { inputTokens, outputTokens } = extractTokensFromResponse(response);
     const totalTokens = inputTokens + outputTokens;
     const cost = calculateCost(request.model, inputTokens, outputTokens);

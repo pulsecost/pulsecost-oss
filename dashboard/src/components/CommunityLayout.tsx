@@ -74,21 +74,15 @@ const CommunityLayout: React.FC = () => {
             gap: '12px',
           }}
         >
-          <div
+          <img
+            src="/logo-simple.svg"
+            alt="PulseCost Logo"
             style={{
               width: '40px',
               height: '40px',
-              background: 'linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%)',
-              borderRadius: '12px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '20px',
               flexShrink: 0,
             }}
-          >
-            📊
-          </div>
+          />
           {sidebarOpen && (
             <div>
               <h1
@@ -100,7 +94,7 @@ const CommunityLayout: React.FC = () => {
                   lineHeight: 1,
                 }}
               >
-                OptiLM
+                PulseCost
               </h1>
             </div>
           )}

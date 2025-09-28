@@ -1,6 +1,6 @@
-# Contributing to OptiLM
+# Contributing to PulseCost
 
-Thank you for your interest in contributing to OptiLM! We welcome contributions from the community and appreciate your help in making this project better.
+Thank you for your interest in contributing to PulseCost! We welcome contributions from the community and appreciate your help in making this project better.
 
 ## Getting Started
 
@@ -31,27 +31,37 @@ Thank you for your interest in contributing to OptiLM! We welcome contributions 
 
    ```bash
    cp .env.example .env
-   # Edit .env with your configuration
+   # No server-side API key required - clients provide their own keys
    ```
 
 4. **Start the development environment**
 
    ```bash
-   # Start all services
-   OPENAI_API_KEY="your-api-key" docker-compose -f docker/compose.dev.yml --profile all up -d
+   # Start all services (no API key needed)
+   docker-compose -f docker/compose.dev.yml --profile all up -d
 
    # Or start individual services
    docker-compose -f docker/compose.dev.yml --profile api up -d
    docker-compose -f docker/compose.dev.yml --profile dashboard up -d
    ```
 
-5. **Run tests**
+5. **Test the API with your own OpenAI key**
+
+   ```bash
+   # Test chat completions
+   curl -s http://localhost:3000/v1/chat/completions \
+     -H "Content-Type: application/json" \
+     -H "Authorization: Bearer sk-your-openai-api-key" \
+     -d '{"model": "gpt-4", "messages": [{"role": "user", "content": "Hello"}]}'
+   ```
+
+6. **Run tests**
 
    ```bash
    pnpm test
    ```
 
-6. **Run linting**
+7. **Run linting**
    ```bash
    pnpm lint
    ```
@@ -192,4 +202,4 @@ If you have questions about contributing, please:
 
 ## Thank You
 
-Thank you for contributing to OptiLM! Your contributions help make this project better for everyone.
+Thank you for contributing to PulseCost! Your contributions help make this project better for everyone.

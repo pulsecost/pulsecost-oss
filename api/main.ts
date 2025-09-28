@@ -13,11 +13,10 @@ async function main(): Promise<void> {
     // Initialize the repository (create tables)
     await repository.init();
 
-    // Only create inference gateway if API key is provided
-    const apiKey = envAdapter.get('openaiApiKey');
-    const inferenceGateway = apiKey
-      ? new OpenAIInferenceGateway(apiKey, envAdapter.get('openaiBaseUrl'))
-      : null;
+    // Create inference gateway (API key will be passed per request)
+    const inferenceGateway = new OpenAIInferenceGateway(
+      envAdapter.get('openaiBaseUrl')
+    );
     const proxyRequest = new ProxyRequest(inferenceGateway, repository);
     const httpServer = new HttpServer(proxyRequest, repository);
 

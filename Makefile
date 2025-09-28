@@ -1,8 +1,8 @@
-# OptiLM - Minimal Makefile
+# PulseCost - Minimal Makefile
 .PHONY: help install dev build start lint format clean docker-dev docker-dev-no-cache docker-dev-with-ui docker-db-ui docker-prod docker-prod-no-cache docker-stop
 
 help: ## Show available commands
-	@echo "OptiLM - Available commands:"
+	@echo "PulseCost - Available commands:"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-15s %s\n", $$1, $$2}'
 
 install: ## Install dependencies

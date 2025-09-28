@@ -13,10 +13,10 @@ services:
       - DB_DRIVER=${DB_DRIVER:-postgres}
       - DB_HOST=${DB_HOST:-postgres}
       - DB_PORT=${DB_PORT:-5432}
-      - DB_USER=${DB_USER:-opti_lm}
-      - DB_PASSWORD=${DB_PASSWORD:-opti_lm}
-      - DB_NAME=${DB_NAME:-opti_lm}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - DB_USER=${DB_USER:-pulsecost}
+      - DB_PASSWORD=${DB_PASSWORD:-pulsecost}
+      - DB_NAME=${DB_NAME:-pulsecost}
+      # No server-side API key required - clients provide their own keys
     depends_on:
       postgres:
         condition: service_healthy
@@ -50,13 +50,13 @@ services:
   postgres:
     image: postgres:15
     environment:
-      - POSTGRES_DB=opti_lm
-      - POSTGRES_USER=opti_lm
-      - POSTGRES_PASSWORD=opti_lm
+      - POSTGRES_DB=pulsecost
+      - POSTGRES_USER=pulsecost
+      - POSTGRES_PASSWORD=pulsecost
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U opti_lm']
+      test: ['CMD-SHELL', 'pg_isready -U pulsecost']
       interval: 10s
       timeout: 5s
       retries: 5

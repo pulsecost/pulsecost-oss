@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Sample data generation script for OptiLM Dashboard
+ * Sample data generation script for PulseCost Dashboard
  * This script generates sample API usage data to populate the dashboard charts
  */
 
@@ -11,9 +11,9 @@ const { Client } = require('pg');
 const dbConfig = {
   host: 'localhost',
   port: 5432,
-  database: 'opti_lm',
-  user: 'opti_lm',
-  password: 'opti_lm',
+  database: 'pulsecost',
+  user: 'pulsecost',
+  password: 'pulsecost',
 };
 
 // Sample API keys
