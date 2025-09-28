@@ -1,0 +1,126 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: api/Dockerfile
+    ports:
+      - '3000:3000'
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - DB_DRIVER=postgres
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=opti_lm
+      - DB_PASSWORD=opti_lm
+      - DB_NAME=opti_lm
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    volumes:
+      - ../api:/app/api
+      - ../model:/app/model
+      - ../common:/app/common
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    profiles: ['api', 'all']
+
+  dashboard:
+    build:
+      context: ..
+      dockerfile: dashboard/Dockerfile
+    ports:
+      - '3001:80'
+    volumes:
+      - ../dashboard:/app/dashboard
+      - ../model:/app/model
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:80/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    profiles: ['dashboard', 'all']
+
+  # Optional MySQL service
+  mysql:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=opti_lm
+      - MYSQL_USER=opti_lm
+      - MYSQL_PASSWORD=opti_lm
+    ports:
+      - '3306:3306'
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
+      timeout: 20s
+      retries: 10
+    profiles: ['mysql', 'all']
+
+  # MySQL Admin UI
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    environment:
+      - PMA_HOST=mysql
+      - PMA_PORT=3306
+      - PMA_USER=opti_lm
+      - PMA_PASSWORD=opti_lm
+      - MYSQL_ROOT_PASSWORD=root
+    ports:
+      - '8080:80'
+    depends_on:
+      mysql:
+        condition: service_healthy
+    profiles: ['db-ui', 'mysql', 'all']
+
+  # Optional PostgreSQL service
+  postgres:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=opti_lm
+      - POSTGRES_USER=opti_lm
+      - POSTGRES_PASSWORD=opti_lm
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U opti_lm']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    profiles: ['postgres', 'all']
+
+  # PostgreSQL Admin UI
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@example.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+      - PGADMIN_CONFIG_SERVER_MODE=False
+    ports:
+      - '5050:80'
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles: ['db-ui', 'all']
+
+volumes:
+  mysql_data:
+  postgres_data:
+  pgadmin_data:

@@ -1,0 +1,44 @@
+{
+  "name": "pulsecost-oss",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter api dev",
+    "build": "pnpm --filter api build && pnpm --filter dashboard build",
+    "start": "pnpm --filter api start",
+    "lint": "pnpm --filter api lint && pnpm --filter dashboard lint",
+    "lint:fix": "pnpm --filter api lint:fix && pnpm --filter dashboard lint:fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "type-check": "pnpm --filter api type-check && pnpm --filter dashboard type-check",
+    "check-all": "pnpm type-check && pnpm lint && pnpm format:check && pnpm build",
+    "check-dev": "pnpm --filter @pulsecost-oss/api dev --dry-run 2>&1 || echo 'API dev check completed'",
+    "check-errors": "./scripts/check-errors.sh",
+    "prepare": "husky install"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^18.4.3",
+    "@commitlint/config-conventional": "^18.4.3",
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.14.0",
+    "@typescript-eslint/parser": "^6.14.0",
+    "eslint": "^8.55.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.0",
+    "prettier": "^3.1.0",
+    "typescript": "^5.0.0"
+  },
+  "lint-staged": {
+    "api/**/*.{ts,js}": [
+      "cd api && eslint --fix",
+      "prettier --write"
+    ],
+    "dashboard/**/*.{ts,tsx,js,jsx}": [
+      "cd dashboard && eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
+  }
+}

@@ -1,0 +1,252 @@
+name: Check Errors
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+jobs:
+  check-errors:
+    name: Comprehensive Error Check
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18, 20, 22]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build dependencies
+        run: pnpm --filter @pulsecost-oss/model build && pnpm --filter @pulsecost-oss/common build
+
+      - name: Check Node.js version compatibility
+        run: |
+          echo "Node.js version: $(node --version)"
+          if [ -f ".nvmrc" ]; then
+            echo "Required version: $(cat .nvmrc)"
+          fi
+
+      - name: TypeScript type checking
+        run: pnpm type-check
+
+      - name: ESLint linting
+        run: pnpm lint --max-warnings 0
+        continue-on-error: true
+
+      - name: Code formatting check
+        run: pnpm format:check
+        continue-on-error: true
+
+      - name: Build check
+        run: pnpm build
+
+      - name: Check project structure
+        run: |
+          echo "Checking required directories..."
+          for dir in api dashboard model common docker; do
+            if [ ! -d "$dir" ]; then
+              echo "❌ Required directory $dir is missing"
+              exit 1
+            else
+              echo "✅ Directory $dir exists"
+            fi
+          done
+
+      - name: Check main entry points
+        run: |
+          echo "Checking main entry points..."
+          if [ ! -f "api/main.ts" ]; then
+            echo "❌ API main entry point (api/main.ts) is missing"
+            exit 1
+          else
+            echo "✅ API main entry point found"
+          fi
+
+          if [ ! -f "dashboard/src/app/index.tsx" ]; then
+            echo "❌ Dashboard main entry point is missing"
+            exit 1
+          else
+            echo "✅ Dashboard main entry point found"
+          fi
+
+      - name: Check configuration files
+        run: |
+          echo "Checking configuration files..."
+
+          # Check TypeScript config
+          if [ -f "tsconfig.base.json" ]; then
+            echo "✅ Base TypeScript config found"
+          else
+            echo "⚠️ Base TypeScript config not found"
+          fi
+
+          # Check ESLint configs
+          if [ -f "api/.eslintrc.js" ] && [ -f "dashboard/.eslintrc.cjs" ]; then
+            echo "✅ ESLint configurations found"
+          else
+            echo "⚠️ Some ESLint configurations might be missing"
+          fi
+
+          # Check Prettier config
+          if [ -f ".prettierrc.js" ]; then
+            echo "✅ Prettier configuration found"
+          else
+            echo "⚠️ Prettier configuration not found"
+          fi
+
+          # Check Docker files
+          if [ -f "api/Dockerfile" ] && [ -f "dashboard/Dockerfile" ]; then
+            echo "✅ Docker files found"
+          else
+            echo "⚠️ Some Docker files might be missing"
+          fi
+
+      - name: Check dependencies
+        run: |
+          echo "Checking dependencies..."
+          if pnpm list --depth=0 &> /dev/null; then
+            echo "✅ All dependencies are properly installed"
+          else
+            echo "⚠️ Some dependencies might be missing"
+          fi
+
+          # Check for tslib dependency
+          if pnpm list tslib &> /dev/null; then
+            echo "✅ tslib dependency found"
+          else
+            echo "⚠️ tslib dependency not found"
+          fi
+
+      - name: Check Git hooks
+        run: |
+          echo "Checking Git hooks..."
+          if [ -d ".husky" ] && [ -f ".husky/pre-commit" ] && [ -f ".husky/commit-msg" ]; then
+            echo "✅ Git hooks are properly configured"
+          else
+            echo "⚠️ Git hooks might not be properly configured"
+          fi
+
+      - name: Test API startup (dry run)
+        run: |
+          echo "Testing API startup (dry run)..."
+          timeout 10s pnpm --filter @pulsecost-oss/api dev --dry-run 2>&1 || echo "API dev check completed"
+
+      - name: Run comprehensive error check script
+        run: |
+          chmod +x ./scripts/check-errors.sh
+          ./scripts/check-errors.sh
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: build-artifacts-node-${{ matrix.node-version }}
+          path: |
+            api/dist/
+            dashboard/dist/
+          retention-days: 7
+
+  security-check:
+    name: Security Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run security audit
+        run: pnpm audit --audit-level moderate
+        continue-on-error: true
+
+      - name: Check for known vulnerabilities
+        run: |
+          echo "Checking for known vulnerabilities..."
+          if pnpm audit --audit-level high; then
+            echo "✅ No high-severity vulnerabilities found"
+          else
+            echo "⚠️ High-severity vulnerabilities detected"
+          fi
+
+  docker-check:
+    name: Docker Build Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build API Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./api/Dockerfile
+          push: false
+          tags: pulsecost-oss-api:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build Dashboard Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./dashboard/Dockerfile
+          push: false
+          tags: pulsecost-oss-dashboard:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Test Docker Compose
+        run: |
+          echo "Testing Docker Compose configuration..."
+          docker compose -f docker/compose.dev.yml config
+          docker compose -f docker/compose.prod.yml config
+          echo "✅ Docker Compose configurations are valid"

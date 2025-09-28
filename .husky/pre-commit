@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Run comprehensive error check first
+echo "🔍 Running comprehensive error check..."
+pnpm check-errors
+
+# Then run lint-staged for staged files
+echo "📝 Running lint-staged on staged files..."
+npx lint-staged

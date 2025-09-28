@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: api/Dockerfile
+    ports:
+      - '3000:3000'
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DB_DRIVER=${DB_DRIVER:-postgres}
+      - DB_HOST=${DB_HOST:-postgres}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_USER=${DB_USER:-opti_lm}
+      - DB_PASSWORD=${DB_PASSWORD:-opti_lm}
+      - DB_NAME=${DB_NAME:-opti_lm}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    profiles: ['api', 'all']
+
+  dashboard:
+    build:
+      context: ..
+      dockerfile: dashboard/Dockerfile
+    ports:
+      - '3001:80'
+    environment:
+      - VITE_API_URL=${VITE_API_URL:-http://localhost:3000}
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:80/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    profiles: ['dashboard', 'all']
+
+  postgres:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=opti_lm
+      - POSTGRES_USER=opti_lm
+      - POSTGRES_PASSWORD=opti_lm
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U opti_lm']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    profiles: ['postgres', 'all']
+
+volumes:
+  postgres_data:
